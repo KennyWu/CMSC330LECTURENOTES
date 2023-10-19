@@ -75,40 +75,130 @@ Given CFG check if something is gramatically correct
 CFG is just a new way to describe a set of strings - just more powerful due to memeory 
     -pushdown automata
 
-   terminal_re = re.compile(r"^[-+*/()]")
- 31     number_re = re.compile(r"^-?\d+")
- 30     wspace_re = re.compile(r"\s+")
- 29     pos = 0
- 28     strlen = len(instr
- 27     while (pos < strlen):
- 26         match = re.match(numbar_re, instr[pos:])
- 25         if match:
- 24             toklst.append(match.group(1))
- 23             pos += len(match.group(1))
- 22         else:
- 21             match = re.match(terminal_re, instr[pos:])
- 20             if match:
- 19                 toklst.append(match.group(1))
- 18                 pos += 1
- 17             else:
- 16                 match = re.match(wspace_re, instr[pos:])
- 15                 if match:
- 14                     toklst.append(match.group(0))
- 13                     pos += 1
- 12                 else:
- 11                     raise SyntaxError("invalid chracter detected")
- 10         return toklst
-  9
-  8 Now parsers
-  7 #take toklist -> tree
-  6 #edge cases: 1 + 2 -
-  5             1 - 2 * 4 order of operations is adhered to
-  4 def parse(toklist):
-  3
-  2 def parse_E(toklst):
-  1     mparse = parse_M(toklst)
-150     #remaining tokens after M is parsed, should be [], [+,...] or [-,....]
-  1
-  2 def parse_M(toklst):
-  3
 
+there are a variety of different parsers that exist
+  Left leaning and right leaning parsers
+  Look-a-head  parsers
+  backtracking parsers
+  recursive descent parsers
+  bottom-up parsers
+
+  in this course: LL(1) -> Left leaning, lookahead by 1 parser (via recursive descent)
+  LL(1) parsers have some restrictions: cannot parse ambiguous grammars
+  ambiguous grammars can be converted to nonambiguous grammars if you are restrained to LL1 parser
+
+         
+evaluating: the process of deriving meaning from a grammatically correct sentence
+
+  allowed
+  1 + 2
+  3 * 6
+  true && false
+
+  disallowed
+  true + 4.0 
+
+lexing: string -> token list
+
+parsing: token list -> parse tree or Absract syntax tree
+    - Focus building an recursive tree
+evaluator: tree -> value|code
+  interpreter: value
+    1 + 2 -> 3
+  compiler: code
+    1 + 2 -> mov 1 abx;
+             mov 2 aby;
+             add abx aby;
+
+"Abstract Syntax Tree" - abstracts away the specific operator (+) as op, represents 2,3 as just n and n
+        OP 
+       /  \ 
+      n    n 
+
+
+'''≈
+CFG
+E -> M + E|M - E|M
+M -> N * M|N / M|N
+N -> n|(E)
+
+1 + 2
+1+2
+1 / 3 * 5
+1 * (2 - 4)
+12+13
+  -> [12], "+13"
+
+terminals: n,+,-,/,*,(,)
+'''
+
+from functools import reduce
+import re
+# string -> token list
+def lex(instr):
+  toklst = []
+  number_re = re.compile(r"^(-?\d+)")
+  terminal_re = re.compile(r"^[()\-+/*]")
+  wspace_re = re.compile(r"^(\s+)")
+  pos = 0
+  strlen = len(instr)
+  while pos < strlen:
+    match = re.match(number_re,instr[pos:])
+    if match:
+      toklst.append(match.group(1))
+      pos += len(match.group(1))
+    else:
+      match = re.match(terminal_re,instr[pos:])
+      if match:
+        toklst.append(match.group(0))
+        pos += 1
+      else:
+        match = re.match(wspace_re,instr[pos:])
+        if match:
+          pos += len(match.group(1))
+        else:
+          raise SyntaxError("Invalid character")
+  return toklst
+
+'''≈
+  1 CFG
+  2 E -> M + E|M - E|M
+  3 M -> N * M|N / M|N
+  4 N -> n|(E)
+  5 
+  6 1 + 2
+  7 1+2
+  8 1 / 3 * 5
+  9 1 * (2 - 4)
+ 10 12+13
+ 11   -> [12], "+13"
+ 12 
+ 13 terminals: n,+,-,/,*,(,)
+ 14 '''
+ 15 
+
+
+class Node:
+    def __init__(self, t, value, left=None, right=None):
+        self.type=t
+        self.left=left
+        self.right=right
+        self.value=value
+
+# token list -> tree
+def parser(toklst):
+
+def parse_e(toklist):
+    #first need a M, then need a plus, lastly we need an E
+    mtree, remain = parse_m(toklist)
+    #Flag maybe something not right here
+    if r
+
+
+def parse_m(toklist):
+
+def parse_n(toklist):
+
+
+# tree -> value
+def eval(tree): 
